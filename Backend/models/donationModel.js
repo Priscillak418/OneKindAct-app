@@ -1,24 +1,12 @@
 import mongoose from "mongoose";
 
 const donationSchema = mongoose.Schema({
-    firstName: {
-        type: String,
-        required: true,
+    donor: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Donor", // Reference to the Donor model
+        required: true
     },
-    lastName: {
-        type: String,
-        required: true,
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-    },
-    phoneNumber: {
-        type: Number,
-        required: true,
-    },
-    itemCatergory:{
+    itemCategory:{
         type: String,
         required: true,
     },
@@ -41,6 +29,14 @@ const donationSchema = mongoose.Schema({
     pickUpTime:{
         type: Date,
         required: true,
+    },
+    phoneNumber:{
+        type: Number,
+        required: true,
+    },
+    deleted: {
+        type: Boolean,
+        default: false,
     }
 })
 

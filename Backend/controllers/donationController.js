@@ -1,12 +1,25 @@
 import asyncHandler from "express-async-handler";
 import Donation from "../models/donationModel.js";
+import Donor from "../models/Donor.js";
+import mongoose from "mongoose";
+
 
 // @desc GET donations
 // @route GET /api/donations
 // @access private
 const getDonations = asyncHandler(async (req, res) => {
-  const donations = await Donation.find();
+  //const donations = await Donation.find();
+  const donations = await Donation.find().populate("donor");
   res.status(200).json(donations);
+});
+
+// @desc GET donations
+// @route GET /api/donations
+// @access private
+const getSingleDonation = asyncHandler(async (req, res) => {
+  //const donations = await Donation.find();
+  const donation = await Donation.findById(req.params.id).populate("donor");
+  res.status(200).json(donation);
 });
 
 // @desc POST donations
@@ -15,35 +28,62 @@ const getDonations = asyncHandler(async (req, res) => {
 const setDonation = asyncHandler(async (req, res) => {
 
   const {
-    firstName,
-    lastName,
-    email,
-    phoneNumber,
-    itemCatergory,
+    donorId,
+    itemCategory,
     itemQuantity,
     imageUpload,
     itemDescription,
     pickUpAddress,
     pickUpTime,
+    phoneNumber
   } = req.body;
 
+  // Validate donorId format
+  if (!mongoose.Types.ObjectId.isValid(donorId)) {
+      return res.status(400).json({ message: "Invalid donor ID format" });
+  }
+
+  // Check if donor exists
+  const donor = await Donor.findById(donorId);
+
+  // Log donorData to check the result of the query
+  console.log("Donor found:", donor);
+  if (!donor) {
+      res.status(404);
+      throw new Error("Donor not found");
+  }
+
   if (
-    !firstName ||
-    !lastName ||
-    !email ||
-    !phoneNumber ||
-    !itemCatergory ||
+    !itemCategory ||
     !itemQuantity ||
     !imageUpload ||
     !itemDescription ||
     !pickUpAddress ||
-    !pickUpTime
+    !pickUpTime ||
+    !phoneNumber
   ) {
     res.status(400);
     throw new Error("Please enter all required donation details");
   }
 
-  const donation = await Donation.create({ ...req.body });
+  // Create new donation
+  const donation = new Donation({
+    donor: donorId, // Link to donor
+    itemCategory,
+    itemQuantity,
+    imageUpload,
+    itemDescription,
+    pickUpAddress,
+    pickUpTime,
+    phoneNumber,
+});
+
+  // Save donation
+  const savedDonation = await donation.save();
+
+  // Push donation ID to donor's donations array
+  donor.donations.push(savedDonation._id);
+  await donor.save();
 
   res.status(201).json(donation);
 });
@@ -53,20 +93,22 @@ const setDonation = asyncHandler(async (req, res) => {
 // @access private
 const updateDonation = asyncHandler(async (req, res) => {
 
-  const donation = await Donation.findById(req.params.id);
+  const { id } = req.params;
+  const updateData = req.body;
+
+  const donation = await Donation.findById(id);
+
+  //console.log("Donation found in the update:", donation);
+  
 
   if(!donation){
     res.status(400);
     throw new Error("Donation not found");
   }
 
-  const updatedDonation = await Donation.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    {
-      new: true,
-    }
-  );
+  // Update the donation fields
+  Object.assign(donation, updateData);
+  const updatedDonation = await donation.save();
 
   res
     .status(200)
@@ -78,12 +120,16 @@ const updateDonation = asyncHandler(async (req, res) => {
 // @access private
 const deleteDonation = asyncHandler(async (req, res) => {
 
-  const donation = await Donation.findById(req.params.id);
+  const { id } = req.params;
+  const donation = await Donation.findById(id);
 
   if(!donation){
     res.status(400);
     throw new Error("Donation not found");
   }
+
+  // Remove donation from the donor's donations array
+  await Donor.updateOne({ _id: donation.donor }, { $pull: { donations: id } });
 
   await donation.deleteOne();
 
@@ -92,4 +138,4 @@ const deleteDonation = asyncHandler(async (req, res) => {
     .json({id: req.params.id, message: "Donation removed"});
 });
 
-export { getDonations, setDonation, updateDonation, deleteDonation };
+export { getSingleDonation, getDonations, setDonation, updateDonation, deleteDonation };

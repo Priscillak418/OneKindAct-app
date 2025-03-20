@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import donationRouter  from './routes/donationRoutes.js';
+import donorRouter from './routes/donorRoutes.js';
 import {errorHandler} from './middleware/errorMiddleware.js';
 
 // Load environment variables from .env file
@@ -22,6 +23,7 @@ const port = process.env.PORT
 
 //routes
 app.use('/api/donations', donationRouter);
+app.use('/api/donors', donorRouter);
 
 app.use(errorHandler);
 

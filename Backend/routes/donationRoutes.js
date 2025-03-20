@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  getSingleDonation,
   getDonations,
   setDonation,
   updateDonation,
@@ -9,7 +10,7 @@ import {
 const router = express.Router();
 
 router.route("/").get(getDonations).post(setDonation);
-router.route("/:id").put(updateDonation).delete(deleteDonation);
+router.route("/:id").get(getSingleDonation).put(updateDonation).delete(deleteDonation);
 
 
 export default router;

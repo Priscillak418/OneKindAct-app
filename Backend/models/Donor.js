@@ -6,6 +6,10 @@ const donorSchema = mongoose.Schema({
         type: String,
         required: true,
     },
+    donations: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Donation" // Reference to the Donation model
+    }]
 })
 
 const Donor = User.discriminator("Donor", donorSchema);
