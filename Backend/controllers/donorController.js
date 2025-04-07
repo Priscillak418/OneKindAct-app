@@ -2,20 +2,27 @@ import asyncHandler from "express-async-handler";
 import Donation from "../models/donationModel.js";
 import Donor from "../models/Donor.js";
 
-// @desc GET donations
-// @route GET /api/donations
+// @desc GET donors
+// @route GET /api/donors
 // @access private
 const getDonors = asyncHandler(async (req, res) => {
     const donors = await Donor.find().populate("donations");
     res.status(200).json(donors);
   });
 
-// @desc GET donations
-// @route GET /api/donations
+// @desc GET single donor
+// @route GET /api/donors/:id
 // @access private
 const getSingleDonor = asyncHandler(async (req, res) => {
     const donor = await Donor.findById(req.params.id).populate("donations");
+
+    if (!donor) {
+        res.status(404);
+        throw new Error("Donor not found");
+    }
+
     res.status(200).json(donor);
+
   });
 
 
@@ -79,8 +86,8 @@ const updateDonor = asyncHandler(async (req, res) => {
 });
 
 
-// @desc SOFT DELETE donation
-// @route DELETE /api/donations/:id
+// @desc DELETE DONOR AND SOFT DELETE donation
+// @route DELETE /api/donors/:id
 // @access private
 const deleteDonor = asyncHandler (async (req, res) => {
     const { id } = req.params;

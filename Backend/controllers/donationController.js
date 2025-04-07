@@ -13,12 +13,18 @@ const getDonations = asyncHandler(async (req, res) => {
   res.status(200).json(donations);
 });
 
-// @desc GET donations
-// @route GET /api/donations
+// @desc GET single donation
+// @route GET /api/donations/id
 // @access private
 const getSingleDonation = asyncHandler(async (req, res) => {
   //const donations = await Donation.find();
   const donation = await Donation.findById(req.params.id).populate("donor");
+
+  if(!donation){
+    res.status(400);
+    throw new Error("Donation not found");
+  }
+
   res.status(200).json(donation);
 });
 
