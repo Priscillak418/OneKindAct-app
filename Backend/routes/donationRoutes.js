@@ -1,16 +1,16 @@
 import express from "express";
 import {
-  getSingleDonation,
   getDonations,
   setDonation,
   updateDonation,
   deleteDonation,
 } from "../controllers/donationController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.route("/").get(getDonations).post(setDonation);
-router.route("/:id").get(getSingleDonation).put(updateDonation).delete(deleteDonation);
+router.route("/").get(protect, getDonations).post(protect, setDonation);
+router.route("/:id").put(protect, updateDonation).delete(protect, deleteDonation);
 
 
 export default router;

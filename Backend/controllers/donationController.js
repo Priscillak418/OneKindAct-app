@@ -4,29 +4,30 @@ import Donor from "../models/Donor.js";
 import mongoose from "mongoose";
 
 
+
 // @desc GET donations
 // @route GET /api/donations
 // @access private
 const getDonations = asyncHandler(async (req, res) => {
   //const donations = await Donation.find();
-  const donations = await Donation.find().populate("donor");
+  const donations = await Donation.find({donor: req.user.id}).populate("donor");
   res.status(200).json(donations);
 });
 
-// @desc GET single donation
-// @route GET /api/donations/id
-// @access private
-const getSingleDonation = asyncHandler(async (req, res) => {
-  //const donations = await Donation.find();
-  const donation = await Donation.findById(req.params.id).populate("donor");
+// // @desc GET single donation
+// // @route GET /api/donations/id
+// // @access private
+// const getSingleDonation = asyncHandler(async (req, res) => {
+//   //const donations = await Donation.find();
+//   const donation = await Donation.findById(req.params.id).populate("donor");
 
-  if(!donation){
-    res.status(400);
-    throw new Error("Donation not found");
-  }
+//   if(!donation){
+//     res.status(400);
+//     throw new Error("Donation not found");
+//   }
 
-  res.status(200).json(donation);
-});
+//   res.status(200).json(donation);
+// });
 
 // @desc POST donations
 // @route POST /api/donations
@@ -74,7 +75,7 @@ const setDonation = asyncHandler(async (req, res) => {
 
   // Create new donation
   const donation = new Donation({
-    donor: donorId, // Link to donor
+    donor: req.user.id, // Link to donor
     itemCategory,
     itemQuantity,
     imageUpload,
@@ -112,6 +113,20 @@ const updateDonation = asyncHandler(async (req, res) => {
     throw new Error("Donation not found");
   }
 
+  const user = await Donor.findById(req.user.id);
+
+  //Check for user
+  if(!user){
+    res.status(400);
+    throw new Error("User not found");
+  }
+
+  // Check if the logged-in user is the donor of the donation
+  if (donation.donor.toString() !== user.id) {
+    res.status(401);
+    throw new Error("You are not authorized to update this donation");
+  }
+
   // Update the donation fields
   Object.assign(donation, updateData);
   const updatedDonation = await donation.save();
@@ -134,6 +149,21 @@ const deleteDonation = asyncHandler(async (req, res) => {
     throw new Error("Donation not found");
   }
 
+  const user = await Donor.findById(req.user.id);
+
+  //Check for user
+  if(!user){
+    res.status(400);
+    throw new Error("User not found");
+  }
+
+  // Check if the logged-in user is the donor of the donation
+  if (donation.donor.toString() !== user.id) {
+    res.status(401);
+    throw new Error("You are not authorized to delete this donation");
+  }
+
+
   // Remove donation from the donor's donations array
   await Donor.updateOne({ _id: donation.donor }, { $pull: { donations: id } });
 
@@ -144,4 +174,4 @@ const deleteDonation = asyncHandler(async (req, res) => {
     .json({id: req.params.id, message: "Donation removed"});
 });
 
-export { getSingleDonation, getDonations, setDonation, updateDonation, deleteDonation };
+export {getDonations, setDonation, updateDonation, deleteDonation };
