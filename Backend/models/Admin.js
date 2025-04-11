@@ -5,7 +5,7 @@ const adminSchema = mongoose.Schema({
     permissions : {
         type: String,
         required: true,
-        enum: ["manage_users", "approve_donations", "delete_posts"],
+        enum: ["Manage_users", "approve_donations", "delete_posts"],
     },
 })
 
