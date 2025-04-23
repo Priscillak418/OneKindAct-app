@@ -6,11 +6,12 @@ const donationSchema = mongoose.Schema({
         ref: "Donor", // Reference to the Donor model
         required: true
     },
-    itemCategory:{
-        type: String,
+    donationCategory: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "DonationCategory",
         required: true,
     },
-    itemQuantity:{
+    donationQuantity:{
         type: Number,
         required: true,
     },
@@ -18,7 +19,7 @@ const donationSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-    itemDescription:{
+    donationDescription:{
         type: String,
         required: true,
     },

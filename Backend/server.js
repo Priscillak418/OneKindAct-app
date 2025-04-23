@@ -4,7 +4,8 @@ import connectDB from "./config/db.js";
 import donationRouter  from './routes/donationRoutes.js';
 import donorRouter from './routes/donorRoutes.js';
 import {errorHandler} from './middleware/errorMiddleware.js';
-import authRouter from "./routes/authRoutes.js"
+import authRouter from "./routes/authRoutes.js";
+import donationCategoryRouter from "./routes/DonationCategoryRoutes.js";
 
 // Load environment variables from .env file
 dotenv.config();
@@ -26,6 +27,7 @@ const port = process.env.PORT
 app.use('/api/donations', donationRouter);
 app.use('/api/donors', donorRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/donationCategories', donationCategoryRouter);
 
 app.use(errorHandler);
 

@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import Donation from "../models/donationModel.js";
 import Donor from "../models/Donor.js";
 import mongoose from "mongoose";
+import DonationCategory from "../models/DonationCategory.js";
 
 
 
@@ -14,20 +15,6 @@ const getDonations = asyncHandler(async (req, res) => {
   res.status(200).json(donations);
 });
 
-// // @desc GET single donation
-// // @route GET /api/donations/id
-// // @access private
-// const getSingleDonation = asyncHandler(async (req, res) => {
-//   //const donations = await Donation.find();
-//   const donation = await Donation.findById(req.params.id).populate("donor");
-
-//   if(!donation){
-//     res.status(400);
-//     throw new Error("Donation not found");
-//   }
-
-//   res.status(200).json(donation);
-// });
 
 // @desc POST donations
 // @route POST /api/donations
@@ -35,19 +22,27 @@ const getDonations = asyncHandler(async (req, res) => {
 const setDonation = asyncHandler(async (req, res) => {
 
   const {
-    donorId,
-    itemCategory,
-    itemQuantity,
+    donationCategory,
+    donationQuantity,
     imageUpload,
-    itemDescription,
+    donationDescription,
     pickUpAddress,
     pickUpTime,
     phoneNumber
   } = req.body;
 
-  // Validate donorId format
-  if (!mongoose.Types.ObjectId.isValid(donorId)) {
-      return res.status(400).json({ message: "Invalid donor ID format" });
+  // Check if the user is authenticated
+  if (!req.user) {
+    res.status(401);
+    throw new Error("User not authenticated");
+  }
+  const donorId = req.user.id;
+
+  // Check if category exists by name
+  const category = await DonationCategory.findOne({ name: donationCategory });
+  if (!category) {
+    res.status(400);
+    throw new Error("Category not found. Make sure to use a valid category name.");
   }
 
   // Check if donor exists
@@ -61,10 +56,10 @@ const setDonation = asyncHandler(async (req, res) => {
   }
 
   if (
-    !itemCategory ||
-    !itemQuantity ||
+    !donationCategory ||
+    !donationQuantity ||
     !imageUpload ||
-    !itemDescription ||
+    !donationDescription ||
     !pickUpAddress ||
     !pickUpTime ||
     !phoneNumber
@@ -76,10 +71,10 @@ const setDonation = asyncHandler(async (req, res) => {
   // Create new donation
   const donation = new Donation({
     donor: req.user.id, // Link to donor
-    itemCategory,
-    itemQuantity,
+    donationCategory: category._id,
+    donationQuantity,
     imageUpload,
-    itemDescription,
+    donationDescription,
     pickUpAddress,
     pickUpTime,
     phoneNumber,
